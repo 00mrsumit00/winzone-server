@@ -36,6 +36,23 @@ pool.getConnection()
         console.error('❌ Database Connection Failed:', err);
     });
 
+// --- 🕒 OPERATING HOURS LOGIC (IST) ---
+function isShopOpen() {
+    // 1. Get current time in India (IST)
+    const now = new Date();
+    const istString = now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" });
+    const istDate = new Date(istString);
+    
+    const currentHour = istDate.getHours(); // 0 to 23
+
+    // 2. Define Hours (6:00 AM to 11:59 PM)
+    // OPEN: 6 <= hour < 24
+    if (currentHour >= 6 && currentHour <= 23) {
+        return true;
+    }
+    return false;
+}
+
 // --- SETUP APP ---
 const app = express();
 app.use(cors());
@@ -82,6 +99,13 @@ app.post('/api/retailer/login', async (req, res) => {
 
 // Submit Ticket
 app.post('/api/retailer/submit-ticket', async (req, res) => {
+    if (!isShopOpen()) {
+        return res.json({ 
+            success: false, 
+            message: 'Shop is Closed! Operating Hours: 6:00 AM - 12:00 AM' 
+        });
+    }
+
     const { username, ticketData } = req.body;
     const connection = await pool.getConnection();
     try {
@@ -360,9 +384,19 @@ async function generateWinningSpot() {
 }
 
 // Check for draws every 10 seconds
-setInterval(generateWinningSpot, 10000);
+cron.schedule('*/10 6-23 * * *', () => {
+    if (isShopOpen()) {
+        generateWinningSpot();
+    } else {
+        console.log("💤 Shop Closed. Skipping Draw.");
+    }
+}, {
+    scheduled: true,
+    timezone: "Asia/Kolkata" // IMP: Forces the schedule to follow India time
+});
 
 // --- START SERVER ---
 app.listen(PORT, () => {
     console.log(`🚀 Live Server running on port ${PORT}`);
 });
+
