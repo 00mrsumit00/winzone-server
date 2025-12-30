@@ -11,9 +11,9 @@ const crypto = require('crypto');
 // --- CONFIGURATION ---
 const PORT = process.env.PORT || 3000;
 
-// ⚠️ REPLACE THIS WITH YOUR AIVEN CONNECTION STRING ⚠️
-// Example: mysql://avnadmin:PASSWORD@HOST:PORT/defaultdb?ssl-mode=REQUIRED
-const DB_URL = 'mysql://avnadmin:AVNS_uE-NYZ9YjW9xEhRR1rM@mysql-winzone01-winzone-01.f.aivencloud.com:23102/defaultdb?ssl-mode=REQUIRED';
+// Database URL
+const DB_URL = 'mysql://winzone_user:Sumit848587@winzone.c9iuy0owubes.eu-north-1.rds.amazonaws.com:3306/winzone';
+
 
 // --- DATABASE CONNECTION POOL ---
 const pool = mysql.createPool({
@@ -21,9 +21,9 @@ const pool = mysql.createPool({
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0,
-    ssl: {
-        rejectUnauthorized: false // Required for Aiven SSL
-    }
+    // ssl: {
+    //     rejectUnauthorized: false // Required for Aiven SSL
+    // }
 });
 
 // Test Connection
