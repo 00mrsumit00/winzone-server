@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>WinZone - Admin Control Panel</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --sidebar-width: 260px;
+            --primary-color: #4e73df;
+            --secondary-color: #224abe;
+            --bg-light: #f8f9fc;
+            --text-dark: #5a5c69;
+            --success: #1cc88a;
+            --warning: #f6c23e;
+            --danger: #e74a3b;
+            --dark-surface: #2c3e50;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            margin: 0;
+            background-color: var(--bg-light);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            color: #333;
+        }
+
+        /* --- Sidebar Styling --- */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: linear-gradient(180deg, var(--primary-color) 10%, var(--secondary-color) 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            padding-top: 25px;
+            box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+        }
+
+        .brand {
+            font-size: 1.6rem;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 35px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .nav-item {
+            padding: 16px 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            font-size: 0.95rem;
+            opacity: 0.85;
+            border-left: 4px solid transparent;
+        }
+
+        .nav-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            opacity: 1;
+        }
+
+        .nav-item.active {
+            background-color: rgba(255, 255, 255, 0.2);
+            opacity: 1;
+            border-left: 4px solid #fff;
+            font-weight: 700;
+        }
+
+        .nav-item i {
+            margin-right: 15px;
+            width: 20px;
+            text-align: center;
+        }
+
+        /* --- Main Content Area --- */
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .top-bar {
+            height: 70px;
+            background: white;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 35px;
+            z-index: 5;
+        }
+
+        .top-bar h2 {
+            font-weight: 700;
+            color: #444;
+            font-size: 1.5rem;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #555;
+            font-size: 0.95rem;
+        }
+
+        .user-avatar {
+            width: 35px;
+            height: 35px;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .page-content {
+            padding: 30px;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        /* --- Dashboard Cards --- */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            border-left: 5px solid var(--primary-color);
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .stat-text h4 {
+            margin: 0;
+            color: var(--primary-color);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-text h2 {
+            margin: 8px 0 0;
+            color: #333;
+            font-size: 1.6rem;
+            font-weight: 700;
+        }
+
+        .stat-icon {
+            font-size: 2.2rem;
+            color: #e3e6f0;
+        }
+
+        /* --- Tables Styling --- */
+        .table-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+            padding: 25px;
+            margin-bottom: 30px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Scrollable Table Wrapper */
+        .table-scroll-wrapper {
+            max-height: 500px;
+            /* FIXED HEIGHT FOR SCROLL */
+            overflow-y: auto;
+            border: 1px solid #e3e6f0;
+            border-radius: 6px;
+        }
+
+        /* Specific override for Dashboard History Table height */
+        #dashboard .table-scroll-wrapper {
+            max-height: 400px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        /* Sticky Header */
+        thead th {
+            position: sticky;
+            top: 0;
+            background: #f1f3f9;
+            /* Light grey background */
+            z-index: 2;
+            padding: 15px;
+            text-align: center;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            text-transform: uppercase;
+            border-bottom: 2px solid #ddd;
+            box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        td {
+            padding: 14px 15px;
+            border-bottom: 1px solid #e3e6f0;
+            color: #444;
+            font-size: 0.95rem;
+            text-align: center;
+        }
+
+        tr:hover {
+            background-color: #fafbfc;
+        }
+
+        /* --- Buttons --- */
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            line-height: 1.2;
+        }
+
+        .btn:hover {
+            filter: brightness(0.95);
+            transform: translateY(-1px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-info {
+            background: #36b9cc;
+            color: white;
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: #333;
+        }
+
+        /* --- Sections Visibility --- */
+        .section {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* --- Modals --- */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            background: white;
+            padding: 0;
+            /* Removing padding to let header/footer control spacing */
+            border-radius: 12px;
+            width: 450px;
+            max-width: 90%;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            animation: slideIn 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: scale(0.9);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            padding: 20px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+            background-color: #fff;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            color: #333;
+            font-size: 1.25rem;
+        }
+
+        .close-modal {
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #aaa;
+            transition: color 0.2s;
+        }
+
+        .close-modal:hover {
+            color: #333;
+        }
+
+        .modal-body {
+            padding: 25px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 700;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .input-group input,
+        .input-group textarea,
+        .input-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5ee;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: border-color 0.2s;
+        }
+
+        .input-group input:focus,
+        .input-group textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .modal-footer {
+            padding: 20px 25px;
+            background-color: #f8f9fc;
+            text-align: right;
+            border-top: 1px solid #eee;
+        }
+
+        /* --- Ledger Modal Specifics --- */
+        #ledger-modal .modal-content {
+            width: 900px;
+            background: #fff;
+        }
+
+        #ledger-modal .table-scroll-wrapper {
+            border: 1px solid #444;
+            /* Dark border for the dark table */
+            background-color: #1f232a;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="sidebar">
+        <div class="brand">
+            <i class="fa-solid fa-crown" style="color: #ffd700;"></i> WinZone
+        </div>
+
+        <div class="nav-item active" onclick="showSection('dashboard', this)">
+            <i class="fa-solid fa-gauge-high"></i> Dashboard
+        </div>
+        <div class="nav-item" onclick="showSection('users', this)">
+            <i class="fa-solid fa-users"></i> User Management
+        </div>
+        <div class="nav-item" onclick="showSection('draws', this)">
+            <i class="fa-solid fa-dice"></i> Live Draw Control
+        </div>
+        <div class="nav-item"
+            style="margin-top: auto; background: rgba(231, 74, 59, 0.2); border-left: 4px solid var(--danger);"
+            onclick="logout()">
+            <i class="fa-solid fa-sign-out-alt" style="color: #ffcccc;"></i> Logout
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="top-bar">
+            <h2 id="page-title">Dashboard Overview</h2>
+            <div class="user-profile">
+                <div class="user-avatar">A</div>
+                <span>Welcome, <b>Admin</b></span>
+            </div>
+        </div>
+
+        <div class="page-content">
+
+            <div id="dashboard" class="section active">
+                <div class="cards-grid">
+                    <div class="stat-card" style="border-left-color: var(--primary-color);">
+                        <div class="stat-text">
+                            <h4>Total Retailers</h4>
+                            <h2 id="total-users">0</h2>
+                        </div>
+                        <div class="stat-icon"><i class="fa-solid fa-users"></i></div>
+                    </div>
+                    <div class="stat-card" style="border-left-color: var(--success);">
+                        <div class="stat-text">
+                            <h4>Today's Sale</h4>
+                            <h2 id="today-sale">₹0.00</h2>
+                        </div>
+                        <div class="stat-icon"><i class="fa-solid fa-indian-rupee-sign"
+                                style="color:#1cc88a26; color: #1cc88a;"></i></div>
+                    </div>
+                    <div class="stat-card" style="border-left-color: var(--warning);">
+                        <div class="stat-text">
+                            <h4>Pending Draw</h4>
+                            <h2 id="next-draw-time">--:--</h2>
+                        </div>
+                        <div class="stat-icon"><i class="fa-solid fa-clock" style="color: #f6c23e;"></i></div>
+                    </div>
+                    <div class="stat-card" style="border-left-color: var(--danger);">
+                        <div class="stat-text">
+                            <h4>Net Profit (Today)</h4>
+                            <h2 id="today-profit">₹0.00</h2>
+                        </div>
+                        <div class="stat-icon"><i class="fa-solid fa-chart-pie" style="color: #e74a3b;"></i></div>
+                    </div>
+                    <div style="margin-top: 15px; border-top: 1px dashed #ccc; padding-top: 15px;">
+                        <h4 style="margin: 0 0 10px 0; color: #4e73df;">Smart Payout Control (RTP)</h4>
+                        <div style="display: flex; gap: 15px;">
+
+                            <div style="flex: 1;">
+                                <label style="display: block; font-weight: bold; color: #333;">Target Daily %</label>
+                                <input type="number" id="setting-target" placeholder="e.g. 90" class="form-control"
+                                    style="width: 100%; padding: 8px; border: 2px solid #4e73df; border-radius: 6px; font-weight: bold;">
+                                <small style="color: #666;">Goal for Day End</small>
+                            </div>
+
+                            <div style="flex: 1;">
+                                <label style="display: block; font-weight: bold; color: #333;">Min Draw %</label>
+                                <input type="number" id="setting-min" placeholder="e.g. 80" class="form-control"
+                                    style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 6px;">
+                            </div>
+
+                            <div style="flex: 1;">
+                                <label style="display: block; font-weight: bold; color: #333;">Max Draw %</label>
+                                <input type="number" id="setting-max" placeholder="e.g. 100" class="form-control"
+                                    style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 6px;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3 style="margin: 0; color: #444; font-size: 1.2rem;"><i class="fa-solid fa-trophy"
+                                style="color:var(--warning); margin-right:8px;"></i> Draw History</h3>
+                        <div
+                            style="display: flex; gap: 10px; align-items: center; background: #f8f9fc; padding: 8px 12px; border-radius: 8px; border: 1px solid #e3e6f0;">
+                            <label style="font-weight: 700; font-size: 0.85rem; color: #666;">Filter:</label>
+                            <input type="date" id="dash-date-filter"
+                                style="padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.9rem;">
+                            <button class="btn btn-success" style="padding: 6px 12px;"
+                                onclick="loadDashHistory(true)">Today</button>
+                        </div>
+                    </div>
+
+                    <div class="table-scroll-wrapper">
+                        <table id="dashboard-history-table">
+                            <thead>
+                                <tr>
+                                    <th>Draw ID</th>
+                                    <th>End Time</th>
+                                    <th>Winning Spot</th>
+                                    <th>Collection</th>
+                                    <th>Payout</th>
+                                    <th>Profit</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dash-history-body">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="users" class="section">
+                <div class="table-container">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3 style="margin: 0; color: #444;">All Retailers</h3>
+                        <button class="btn btn-primary" onclick="openAddUserModal()">
+                            <i class="fa-solid fa-plus"></i> Add New User
+                        </button>
+                    </div>
+
+                    <div class="table-scroll-wrapper" style="max-height: 600px;">
+                        <table id="users-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Username</th>
+                                    <th>Balance</th>
+                                    <th>Role</th>
+                                    <th>Status</th>
+                                    <th style="width: 320px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="draws" class="section">
+                <div class="table-container">
+                    <h3 style="margin-top: 0; color: #444; margin-bottom: 20px;">Live Draw Management</h3>
+
+                    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                        <div
+                            style="flex: 1; min-width: 300px; padding: 30px; text-align: center; background: linear-gradient(135deg, #f8f9fc 0%, #e8eaed 100%); border-radius: 12px; border: 1px solid #dee2e6;">
+                            <h2
+                                style="margin: 0; font-size: 1.1rem; color: #666; text-transform: uppercase; letter-spacing: 1px;">
+                                Next Draw Ends In</h2>
+                            <div style="font-size: 4rem; font-weight: 800; color: var(--danger); line-height: 1.2; margin: 10px 0;"
+                                id="admin-timer">00:00</div>
+                            <p style="margin: 0; font-size: 1.1rem;">Total Collection: <strong id="live-collection"
+                                    style="color: var(--success);">₹0.00</strong></p>
+                        </div>
+
+                        <div
+                            style="flex: 1; min-width: 300px; padding: 30px; background: #fff; border: 2px dashed #e74a3b; border-radius: 12px; position: relative;">
+                            <div
+                                style="position: absolute; top: -12px; left: 20px; background: #e74a3b; color: white; padding: 2px 10px; font-size: 0.75rem; font-weight: bold; border-radius: 4px;">
+                                ADMIN OVERRIDE</div>
+                            <h4 style="margin-top: 0; color: #333;">Force Winning Spot</h4>
+                            <p style="font-size: 0.9rem; color: #666; margin-bottom: 20px; line-height: 1.5;">Select a
+                                specific spot to ensure it wins the current pending draw. <b>Use with caution.</b></p>
+
+                            <div style="display: flex; gap: 10px;">
+                                <div style="flex-grow: 1;">
+                                    <select id="manual-winner-select"
+                                        style="width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px;">
+                                        <option value="">-- Select Spot --</option>
+                                        <option value="A0">A0</option>
+                                        <option value="B1">B1</option>
+                                        <option value="C2">C2</option>
+                                        <option value="D3">D3</option>
+                                        <option value="E4">E4</option>
+                                        <option value="F5">F5</option>
+                                        <option value="G6">G6</option>
+                                        <option value="H7">H7</option>
+                                        <option value="I8">I8</option>
+                                        <option value="J9">J9</option>
+                                    </select>
+                                </div>
+                                <button class="btn btn-danger" onclick="forceWinner()" style="white-space: nowrap;">
+                                    Set Winner <i class="fa-solid fa-gavel" style="margin-left: 5px;"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="add-user-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-user-plus" style="color: var(--primary-color);"></i> Add New Retailer</h3>
+                <span class="close-modal" onclick="closeAddUserModal()">&times;</span>
+            </div>
+
+            <form id="add-user-form" onsubmit="submitNewUser(event)">
+                <div class="modal-body">
+                    <div class="input-group">
+                        <label>User ID (Username)</label>
+                        <input type="text" id="new-username" placeholder="e.g. Aman01" required
+                            pattern="^(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{4,}$"
+                            title="Must contain at least 1 uppercase letter, 1 number, and be 4+ chars">
+                        <small style="color: #888; font-size: 0.8rem; margin-top: 4px; display: block;">Min 4 chars, 1
+                            Uppercase Letter, 1 Number</small>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Password</label>
+                        <input type="password" id="new-password" placeholder="Secure Password" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Store Address</label>
+                        <textarea id="new-address" placeholder="Store location..." required rows="2"></textarea>
+                    </div>
+
+                    <div class="input-group" style="margin-bottom: 0;">
+                        <label>Contact No.</label>
+                        <input type="tel" id="new-contact" placeholder="10-digit Mobile Number" required
+                            pattern="[0-9]{10}">
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn" style="background: #e2e6ea; color: #555; margin-right: 10px;"
+                        onclick="closeAddUserModal()">Cancel</button>
+                    <button type="submit" class="btn btn-success">Create User</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="ledger-modal" class="modal-overlay">
+        <div class="modal-content" style="width: 900px; max-width: 95%; background-color: #2c3e50;">
+            <div class="modal-header" style="background-color: #1f232a; border-bottom: 1px solid #444; color: white;">
+                <h3 style="color: #fff;"><i class="fa-solid fa-wallet" style="color: var(--warning);"></i> Account
+                    Ledger: <span id="ledger-username" style="color: var(--primary-color);">--</span></h3>
+                <span class="close-modal" onclick="closeLedgerModal()" style="color: #aaa;">&times;</span>
+            </div>
+
+            <div class="modal-body" style="background-color: #2c313a; color: white; padding-bottom: 0;">
+                <div
+                    style="background: #1f232a; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; align-items: center; gap: 15px; border: 1px solid #444; flex-wrap: wrap;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <label style="color: #aaa; margin: 0;">From:</label>
+                        <input type="date" id="ledger-from"
+                            style="padding: 8px; background: #2c3e50; border: 1px solid #555; color: white; border-radius: 4px;">
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <label style="color: #aaa; margin: 0;">To:</label>
+                        <input type="date" id="ledger-to"
+                            style="padding: 8px; background: #2c3e50; border: 1px solid #555; color: white; border-radius: 4px;">
+                    </div>
+
+                    <div style="margin-left: auto; display: flex; gap: 10px;">
+                        <button class="btn" style="background: #444; color: white;" onclick="fetchLedger()">
+                            <i class="fa-solid fa-search"></i> Search
+                        </button>
+                        <button class="btn btn-warning" onclick="fetchLedger(true)">
+                            <i class="fa-solid fa-calendar-day"></i> Today
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-scroll-wrapper" style="border: 1px solid #444; max-height: 450px;">
+                    <table style="background-color: #1f232a; color: white;">
+                        <thead>
+                            <tr>
+                                <th style="background: #ffc107; color: black; width: 20%;">Date</th>
+                                <th style="background: #ffc107; color: black; width: 20%;">Total Sale</th>
+                                <th style="background: #ffc107; color: black; width: 20%;">Winning</th>
+                                <th style="background: #ffc107; color: black; width: 20%;">Comm (9%)</th>
+                                <th style="background: #e67e00; color: white; width: 20%;">Net To Pay</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ledger-table-body">
+                        </tbody>
+                        <tfoot id="ledger-table-footer">
+                        </tfoot>
+                    </table>
+                </div>
+                <div style="height: 25px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/admin_dashboard.js"></script>
+    <script>
+        // Tab switching logic
+        function showSection(sectionId, element) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            // Show target section
+            document.getElementById(sectionId).classList.add('active');
+
+            // Update nav active state
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            if (element) element.classList.add('active');
+
+            // Update Title
+            const titles = { 'dashboard': 'Dashboard Overview', 'users': 'User Management', 'draws': 'Live Draw Control', 'reports': 'Sales Reports' };
+            document.getElementById('page-title').innerText = titles[sectionId];
+        }
+
+        async function logout() {
+            try {
+                const res = await fetch('/api/logout', { method: 'POST' });
+                const data = await res.json();
+                if (data.success) {
+                    sessionStorage.clear();
+                    window.location.href = '/';
+                } else {
+                    alert('Logout failed');
+                }
+            } catch (err) {
+                console.error('Logout error:', err);
+                window.location.href = '/';
+            }
+        }
+    </script>
+</body>
+
+</html>
